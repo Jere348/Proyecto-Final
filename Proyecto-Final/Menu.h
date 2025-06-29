@@ -11,7 +11,21 @@
 #include "AVL.h"
 #include "GestorUsuarios.h"
 #include <conio.h>
+#include <windows.h>
+
 //Hola
+
+void gotoxy(int x, int y) {
+    COORD coord = { static_cast<SHORT>(x), static_cast<SHORT>(y) };
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+int centrarX(const string& texto) {
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    int ancho = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    return (ancho - static_cast<int>(texto.length())) / 2;
+}
 void ordenarListaPorPrecio(Lista<producto*>* lista) {
     if (lista->esVacia()) return;
 
@@ -730,65 +744,92 @@ inline void Controlador::Vercarrito()
     }
 }
 
-void Controlador::Menu()
-{
-    int mainmenu;
-    
-    cout << "                          "; cout << "                       -=                " << endl;
-    cout << "                          "; cout << "               .     -##:                " << endl;
-    cout << "                          "; cout << "              :=     -###=          =:   " << endl;
-    cout << "                          "; cout << "             +*      *####+.         *+  " << endl;
-    cout << "                          "; cout << "            +#:      #######+.       :#+ " << endl;
-    cout << "                          "; cout << "           -##.      -########.      .##-" << endl;
-    cout << "                          "; cout << "           *##:       =#######*      :##*" << endl;
-    cout << "                          "; cout << "           ###*        .+######      *###" << endl;
-    cout << "                          "; cout << "           *###*         .*###+     *###*" << endl;
-    cout << "                          "; cout << "           -#####-        :##*    -#####-" << endl;
-    cout << "                          "; cout << "            +######=:     :#=  :=######+ " << endl;
-    cout << "                          "; cout << "             =#########*++#+*#########=  " << endl;
-    cout << "                          "; cout << "              :*####################*:   " << endl;
-    cout << "                          "; cout << "                .=################=:     " << endl;
-    cout << "                          "; cout << "                   :=*##########*+.      " << endl;
-    cout << "                                                                                                                     " << endl;
+void Controlador::Menu() {
+    string opciones[] = {
+        "Ingresar Sesion",
+        "Registrar Nuevo Usuario",
+        "Salir"
+    };
+    const int n = sizeof(opciones) / sizeof(opciones[0]);
+    int seleccion = 0;
+    bool corriendo = true;
 
-    cout << "                                                  Llevalo" << endl << endl << endl;
-    cout << "                                             1.Ingresar Sesion" << endl;
-    cout << "                                         2.Registrar Nuevo Usuario" << endl;
-    cout << "                                                  3.Salir" << endl;
+    while (corriendo) {
+        system("cls");
 
-    cin >> mainmenu;
-    do
-    {
-        switch (mainmenu)
-        {
-
-        case 1:
-            if (IniciarSesion())
-            {
-                InterfazUsuario();
-            }
-            break;
-        case 2:
-
-			RegistrarUsuario();
-            break;
-
-        case 3:
-            List_Bebidas = nullptr;
-            List_Carrito = nullptr;
-            List_Comida = nullptr;
-            List_productos = nullptr;
-            Cola_Repartidor = nullptr;
-            List_Salud = nullptr;
-            exit(0);
-            break;
-        default:
-
-            break;
+        // Arte centrado (puedes agregar más)
+        string arte[] = {
+            "                -=                ",
+            "        .     -##:                ",
+            "       :=     -###=          =:   ",
+            "      +*      *####+.         *+  ",
+            "     +#:      #######+.       :#+ ",
+            "    -##.      -########.      .##-",
+            "    *##:       =#######*      :##*",
+            "    ###*        .+######      *###",
+            "    *###*         .*###+     *###*",
+            "    -#####-        :##*    -#####-",
+            "     +######=:     :#=  :=######+ ",
+            "      =#########*++#+*#########=  ",
+            "       :*####################*:   ",
+            "         .=################=:     ",
+            "            :=*##########*+.      "
+        };
+        for (int i = 0; i < sizeof(arte) / sizeof(arte[0]); i++) {
+            gotoxy(centrarX(arte[i]), 1 + i);
+            cout << arte[i];
         }
 
-    } while (mainmenu != 3);
-    
+        string titulo = "Llevalo";
+        gotoxy(centrarX(titulo), 17);
+        cout << titulo;
+
+        // Mostrar opciones
+        for (int i = 0; i < n; ++i) {
+            string opcion = opciones[i];
+            int y = 20 + i * 2;
+            gotoxy(centrarX(opcion), y);
+
+            if (i == seleccion) {
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+
+                cout << ">> " << opcion << " <<";
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+            }
+            else {
+                cout << "   " << opcion;
+            }
+        }
+
+        int tecla = _getch();
+        switch (tecla) {
+        case 72: // ?
+            seleccion = (seleccion - 1 + n) % n;
+            break;
+        case 80: // ?
+            seleccion = (seleccion + 1) % n;
+            break;
+        case 13: // Enter
+            switch (seleccion) {
+            case 0:
+                if (IniciarSesion()) InterfazUsuario();
+                break;
+            case 1:
+                RegistrarUsuario();
+                break;
+            case 2:
+                List_Bebidas = nullptr;
+                List_Carrito = nullptr;
+                List_Comida = nullptr;
+                List_productos = nullptr;
+                Cola_Repartidor = nullptr;
+                List_Salud = nullptr;
+                corriendo = false;
+                break;
+            }
+            break;
+        }
+    }
 }
 
 inline void Controlador::InterfazUsuario()
