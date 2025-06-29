@@ -1,0 +1,6 @@
+Rodrigo|971274525|JesusMaria|rodri@gmail.com|12342234
+ana|912345678|Barranco|ana@gmail.com|abcd
+carlos|923456789|JesusMaria|carlos@gmail.com|qwerty
+juan|987654321|SanMiguel|juan@gmail.com|1234
+maria|934567890|SanMiguel|maria@gmail.com|mypass
+pedro|945678901|Barranco|pedro@gmail.com|pass123

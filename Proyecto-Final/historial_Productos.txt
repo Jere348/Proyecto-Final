@@ -1,0 +1,5 @@
+203 Aceite_vegetal 3.5 5
+104 Curitas 0.5 43
+304 Leche_entera 1.4 19
+104 Curitas 0.5 43
+203 Aceite_vegetal 3.5 3
