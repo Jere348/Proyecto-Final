@@ -6,6 +6,7 @@ using namespace System;
 
 int main()
 {
+    
     // Maximiza la ventana
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_MAXIMIZE);

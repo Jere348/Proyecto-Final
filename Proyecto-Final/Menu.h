@@ -328,13 +328,13 @@ inline void Controlador::RegistrarProducto(int a) {
         system("pause");
     }
 
-    // Mostrar tabla de productos con selector
+    // Mostrar tabla de productos con bordes simples
     seleccionado = false;
     bool porNombre = false;
     while (!seleccionado) {
         system("cls");
         gotoxy(centrarX("Seleccion de producto"), 2);
-		cout << "- - - - - - SELECCION DE PRODUCTO - - - - - -";
+        cout << "- - - - - - SELECCION DE PRODUCTO - - - - - -";
         string metodos[] = { "Buscar por nombre", "Seleccionar en la tabla" };
         for (int i = 0; i < 2; i++) {
             gotoxy(centrarX(metodos[i]), 5 + i * 2);
@@ -358,7 +358,47 @@ inline void Controlador::RegistrarProducto(int a) {
     }
 
     producto* productoSeleccionado = nullptr;
-    if (porNombre) {
+    if (!porNombre) {
+        int indice = 0;
+        bool elegido = false;
+        while (!elegido) {
+            system("cls");
+            int ancho = 40;
+            int alto = List_productos->longitud() + 4;
+            int x0 = centrarX("+") - ancho / 2;
+            int y0 = 1;
+
+            gotoxy(x0, y0); cout << "+" << string(ancho - 2, '-') << "+";
+            gotoxy(x0 + 2, y0 + 1); cout << " ID  | NOMBRE          | PRECIO   | STOCK ";
+            for (int i = 0; i < List_productos->longitud(); i++) {
+                string linea = List_productos->obtenerPos(i)->toString_tabla();
+                gotoxy(x0, y0 + 2 + i);
+                cout << "|";
+                if (i == indice) {
+                    SetConsoleTextAttribute(hConsole, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    cout << linea;
+                    SetConsoleTextAttribute(hConsole, 7);
+                }
+                else {
+                    cout << linea;
+                }
+                cout << "|";
+            }
+            gotoxy(x0, y0 + alto - 1); cout << "+" << string(ancho - 2, '-') << "+";
+
+            int tecla = _getch();
+            if (tecla == 224) {
+                tecla = _getch();
+                if (tecla == 72 && indice > 0) indice--;
+                if (tecla == 80 && indice < List_productos->longitud() - 1) indice++;
+            }
+            else if (tecla == 13) {
+                productoSeleccionado = List_productos->obtenerPos(indice);
+                elegido = true;
+            }
+        }
+    }
+    else {
         gotoxy(centrarX("Ingrese el nombre del producto:"), 12);
         cout << "Ingrese el nombre del producto:";
         gotoxy(centrarX("Ingrese el nombre del producto:") + 33, 12);
@@ -378,38 +418,6 @@ inline void Controlador::RegistrarProducto(int a) {
             system("pause");
         }
         delete ht;
-    }
-    else {
-        int indice = 0;
-        bool elegido = false;
-        while (!elegido) {
-            system("cls");
-            gotoxy(centrarX("ID   | NOMBRE           | PRECIO   | STOCK"), 2);
-			cout << "ID   | NOMBRE           | PRECIO   | STOCK" << endl;
-            for (int i = 0; i < List_productos->longitud(); i++) {
-                producto* p = List_productos->obtenerPos(i);
-                string linea = p->toString_tabla();
-                gotoxy(centrarX(linea), 4 + i);
-                if (i == indice) {
-                    SetConsoleTextAttribute(hConsole, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                    cout << "  " << linea;
-                    SetConsoleTextAttribute(hConsole, 7);
-                }
-                else {
-                    cout << "  " << linea;
-                }
-            }
-            int tecla = _getch();
-            if (tecla == 224) {
-                tecla = _getch();
-                if (tecla == 72 && indice > 0) indice--;
-                if (tecla == 80 && indice < List_productos->longitud() - 1) indice++;
-            }
-            else if (tecla == 13) {
-                productoSeleccionado = List_productos->obtenerPos(indice);
-                elegido = true;
-            }
-        }
     }
 
     if (productoSeleccionado) {
