@@ -871,44 +871,75 @@ void Controlador::Menu() {
     }
 }
 
-inline void Controlador::InterfazUsuario()
-{
+inline void Controlador::InterfazUsuario() {
+    string opciones[] = {
+        "Pedir",
+        "Ver Carrito",
+        "Ver Mis Pedidos",
+        "Ver Historial de Compra"
+    };
+    const int n = sizeof(opciones) / sizeof(opciones[0]);
+    int seleccion = 0;
     int a = 0;
+    bool activo = true;
 
-    int interfaz;
-    do
-    {
-        cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - BIENVENIDO  - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-        cout << endl << endl << endl << endl << endl;
-        cout << "                                                          1.Pedir" << endl;
-        cout << "                                                        2.Ver Carrito" << endl;
-        cout << "                                                      3.Ver Mis Pedidos" << endl;
-        cout << "                                                      4.Ver Historial de compra" << endl;
-        cin >> interfaz;
-        switch (interfaz)
-        {
-        case 1:
-            system("cls");
-            RegistrarProducto(a);
-            a++;
-            break;
-        case 2:
-            system("cls");
-            Vercarrito();
-            break;
-        case 3:
-            PedidoRealizado();
-            break;
-        case 4:
-            VerHistorial();
-            GenerarArbolBalanceado();
-            break;
-        default:
-            break;
+    while (activo) {
+        system("cls");
+
+        string titulo = "BIENVENIDO";
+        gotoxy(centrarX(titulo), 4);
+        string tituloDecorado = "- - - - - - - -  " + titulo + "  - - - - - - - -";
+        gotoxy(centrarX(tituloDecorado), 4);
+        cout << tituloDecorado;
+
+        // Mostrar opciones
+        for (int i = 0; i < n; i++) {
+            int y = 8 + i * 2;
+            gotoxy(centrarX(opciones[i]), y);
+
+            if (i == seleccion) {
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                cout << ">> " << opciones[i] << " <<";
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+            }
+            else {
+                cout << "   " << opciones[i];
+            }
         }
 
-    } while (0 < interfaz < 3);
-
+        int tecla = _getch();
+        switch (tecla) {
+        case 72: // Flecha arriba
+            seleccion = (seleccion - 1 + n) % n;
+            break;
+        case 80: // Flecha abajo
+            seleccion = (seleccion + 1) % n;
+            break;
+        case 13: // Enter
+            system("cls");
+            switch (seleccion) {
+            case 0:
+                RegistrarProducto(a);
+                a++;
+                break;
+            case 1:
+                Vercarrito();
+                break;
+            case 2:
+                PedidoRealizado();
+                break;
+            case 3:
+                VerHistorial();
+                GenerarArbolBalanceado();
+                break;
+            }
+            system("pause");
+            break;
+        case 27: // ESC para salir (opcional)
+            activo = false;
+            break;
+        }
+    }
 }
 
 inline void Controlador::PedidoRealizado()
