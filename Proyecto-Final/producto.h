@@ -1,7 +1,8 @@
-#pragma once
+﻿#pragma once
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <iomanip>
 using namespace std;
 
 class producto
@@ -30,6 +31,18 @@ public:
 	{
 		
 		cout << "Codigo: " << id << " | Nombre: " << nombre << " | Precio: $" << precio << " | Stock: " << stock << endl;
+	}
+	string toString_str() const {
+		stringstream ss;
+		ss << "Codigo: " << id << " | Nombre: " << nombre << " | Precio: " << precio << " | Stock: " << stock;
+		return ss.str();
+	}
+	string toString_tabla() {
+		stringstream ss;
+		ss << setw(5) << id << " | " << setw(15) << nombre << " | "
+			<< fixed << setprecision(2) << setw(8) << precio << " | "
+			<< setw(5) << stock;
+		return ss.str();
 	}
 };
 

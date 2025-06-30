@@ -1,4 +1,4 @@
-#include "Cliente.h"
+ï»¿#include "Cliente.h"
 #include "Repartidor.h"
 #include "Carrito.h"
 #include "Cola_.h"
@@ -12,7 +12,7 @@
 #include "GestorUsuarios.h"
 #include <conio.h>
 #include <windows.h>
-
+#include <vector>
 //Hola
 
 void gotoxy(int x, int y) {
@@ -59,6 +59,7 @@ string leerContrasenaOculta(short x, short y) {
     }
     return pass;
 }
+
 
 
 class Controlador
@@ -167,467 +168,301 @@ inline void Controlador::ListarRepartidores()
     cout << endl << "Elije a tu repartidor:"; cin >> eleccionRepartidor;
 }
 
-inline void Controlador::RegistrarProducto(int a)
-{
-    int seleccion;
-    int Ordyaf;
-    int codigo, codigoBuscado, inventario;
-    string nombre;
-    float precio;
-    bool menor;
-    int stockelegido = 0;
-    bool encontrado = false;
-    ifstream nomArch;
-    ofstream tempArch;
-    string nombreBuscar;
-    cout << "- - - - - - - - - - - - - - - - - - - - - - - - - SECCIONES DE PRODUCTOS - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-    cout << "                                                         1.Comida" << endl;
-    cout << "                                                         2.Salud" << endl;
-    cout << "                                                        3.Bebidas" << endl;
-    cin >> seleccion;
-    int i = 0;
-    
-    switch (seleccion)
-    {
-    case 1:
-        i = 0;
-        List_productos->eliminarTodo();
-        cout << "- - - - - - - - - - - - - - - - - - - - - - - - - SECCIONES DE COMIDA - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-        cout << endl;
-        //ACA VA LA LISTAR SALUD
-        nomArch.open("productos_Comida.txt", ios::in);
-        if (nomArch.is_open())
-        {
-            cout << "Lista de productos disponibles:\n";
-            cout << "----------------------------------\n";
-            while (nomArch >> codigo >> nombre >> precio >> inventario)
-            {
-                
-                
-                List_productos->agregaPos(new producto(codigo, nombre, precio, inventario),i);
-                i++;
+inline void Controlador::RegistrarProducto(int a) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    system("cls");
+
+    const string categorias[] = { "Comida", "Salud", "Bebidas" };
+    const string archivos[] = { "productos_Comida.txt", "productos_Salud.txt", "productos_Bebidas.txt" };
+
+    int seleccion = 0;
+    bool seleccionado = false;
+
+    while (!seleccionado) {
+        system("cls");
+        gotoxy(centrarX("SECCIONES DE PRODUCTOS"), 2);
+        cout << "- - - - - - SECCIONES DE PRODUCTOS - - - - - -";
+        for (int i = 0; i < 3; i++) {
+            gotoxy(centrarX(categorias[i]) - 2, 5 + i * 2);
+            if (i == seleccion) {
+                SetConsoleTextAttribute(hConsole, BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                cout << ">> " << categorias[i] << " <<";
+                SetConsoleTextAttribute(hConsole, 7);
             }
-
-
-
-            int selecionOrdenar;
-            cout << "Ordenar de mayor a menor? (1) || Ver lo productos mas Baratos o Caros (2) \n";
-            cin >> selecionOrdenar;
-            switch (selecionOrdenar)
-            {
-            case 1:
-                cout << "Ordenar de mayor a menor(0: Mayor A Menor || 1: Menor a Mayor):\n";
-                cin >> menor;
-                quicksort(List_productos, 0, List_productos->longitud() - 1, menor);
-                break;
-            case 2:
-                cout << "Ver los productos mas baratos o Caros (0: Mas Caros || 1: Mas Baratos):\n";
-                cin >> menor; int indiceBaratosCaros;
-                cout << "Cuantos productos desea ver? (Ingrese un numero):\n"; cin >> indiceBaratosCaros;
-                ObtenerMasCoB(List_productos, menor, indiceBaratosCaros);
-                cout << "\nVolviendo a mostrar la lista...\n";
-            }
-
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-                
-                List_productos->obtenerPos(i)->toString();
-            }
-            nomArch.close();
-
-
-
-            //--HAST TABLE DE PRODUCTOS
-            
-            HashTablaString* ht = new HashTablaString(100);
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-                ht->insertar(List_productos->obtenerPos(i)->getnombre(), List_productos->obtenerPos(i));
-                
-
-			}
-
-            
-            while (true)
-            {
-                cout << "Desea ingresar un producto por nombre? (1 = Si || 0 = No): ";
-                cin >> menor;
-                if (menor == 1)
-                {
-                    std::cout << "\nBuscar nombre: ";
-                    std::cin >> nombreBuscar;
-
-                    int index = ht->buscar(nombreBuscar);
-                    if (index != -1)
-                        std::cout << nombreBuscar << " se encuentra en la posicion " << index << std::endl;
-                    else
-                        std::cout << nombreBuscar << " no se encontro en la tabla." << std::endl;
-
-
-                }
-                else
-                {
-                    break;
-                }
-            }
-            delete ht;
-
-
-
-
-
-
-            //-----------------------
-
-            cout << "\nIngrese el código del producto que desea seleccionar: ";
-            cin >> codigoBuscado;
-            cout << "Ingrese la cantidad de stock que desea: ";
-            cin >> stockelegido;
-            // Leer y actualizar inventario 
-            nomArch.open("productos_Comida.txt", ios::in);
-            tempArch.open("temp.txt", ios::out);
-
-            //
-
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-                if (List_productos->obtenerPos(i)->getid()==codigoBuscado)
-                {
-                    if (List_productos->obtenerPos(i)->getstock() > 0)
-                    {
-                        List_productos->obtenerPos(i)->disminuir_stock(stockelegido);
-                        cout << "\nProducto seleccionado:\n";
-                        cout << "Código: " << List_productos->obtenerPos(i)->getid() << endl;
-                        cout << "Nombre: " << List_productos->obtenerPos(i)->getnombre() << endl;
-                        cout << "Precio: $" << List_productos->obtenerPos(i)->getprecio() << endl;
-                        cout << "Inventario restante: " << List_productos->obtenerPos(i)->getstock() << endl;
-                        encontrado = true;
-                        List_Carrito->agregaPos(new producto(List_productos->obtenerPos(i)->getid(), List_productos->obtenerPos(i)->getnombre(), List_productos->obtenerPos(i)->getprecio(), List_productos->obtenerPos(i)->getstock()), a);
-                       
-
-                    }
-                    else
-                    {
-                        cout << "\nProducto sin stock disponible." << endl;
-                    }
-                }
-                tempArch << List_productos->obtenerPos(i)->getid() << " " << List_productos->obtenerPos(i)->getnombre() << " " << List_productos->obtenerPos(i)->getprecio() << " " << List_productos->obtenerPos(i)->getstock() << endl;
-            }
-            //
-                       
-
-            nomArch.close();
-            tempArch.close();
-
-            // Reemplazar archivo original
-            remove("productos_Comida.txt");
-            rename("temp.txt", "productos_Comida.txt");
-
-            if (!encontrado)
-            {
-                cout << "Producto con código " << codigoBuscado << " no encontrado o sin inventario." << endl;
+            else {
+                cout << "   " << categorias[i];
             }
         }
-        else
-        {
-            cout << "No se pudo abrir el archivo." << endl;
+        int tecla = _getch();
+        if (tecla == 224) {
+            tecla = _getch();
+            if (tecla == 72 && seleccion > 0) seleccion--;
+            if (tecla == 80 && seleccion < 2) seleccion++;
         }
-        
-        break;
-
-    case 2:
-
-        i = 0;
-        List_productos->eliminarTodo();
-        cout << "- - - - - - - - - - - - - - - - - - - - - - - - - SECCIONES DE SALUD - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-        cout << endl;
-        //ACA VA LA LISTAR SALUD
-        nomArch.open("productos_Salud.txt", ios::in);
-        if (nomArch.is_open())
-        {
-            cout << "Lista de productos disponibles:\n";
-            cout << "----------------------------------\n";
-            while (nomArch >> codigo >> nombre >> precio >> inventario)
-            {
-
-
-                List_productos->agregaPos(new producto(codigo, nombre, precio, inventario), i);
-                i++;
-            }
-            int selecionOrdenar;
-            cout << "Ordenar de mayor a menor? (1) || Ver lo productos mas Baratos o Caros (2) \n";
-            cin >> selecionOrdenar;
-            switch (selecionOrdenar)
-            {
-            case 1:
-                    cout << "Ordenar de mayor a menor(0: Mayor A Menor || 1: Menor a Mayor):\n";
-                    cin >> menor;
-                    quicksort(List_productos, 0, List_productos->longitud() - 1, menor);
-					break;
-            case 2:
-                    cout << "Ver los productos mas baratos o Caros (0: Mas Caros || 1: Mas Baratos):\n";
-					cin >> menor; int indiceBaratosCaros;
-					cout << "Cuantos productos desea ver? (Ingrese un numero):\n"; cin >> indiceBaratosCaros;
-					ObtenerMasCoB(List_productos, menor,indiceBaratosCaros);
-                    cout << "\nVolviendo a mostrar la lista...\n";
-            }
-
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-
-                List_productos->obtenerPos(i)->toString();
-            }
-            nomArch.close();
-
-
-
-            //--HAST TABLE DE PRODUCTOS
-
-            HashTablaString* ht = new HashTablaString(100);
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-                ht->insertar(List_productos->obtenerPos(i)->getnombre(), List_productos->obtenerPos(i));
-
-
-            }
-
-
-            while (true)
-            {
-                cout << "Desea ingresar un producto por nombre? (1 = Si || 0 = No): ";
-                cin >> menor;
-                if (menor == 1)
-                {
-                    std::cout << "\nBuscar nombre: ";
-                    std::cin >> nombreBuscar;
-
-                    int index = ht->buscar(nombreBuscar);
-                    if (index != -1)
-                        std::cout << nombreBuscar << " se encuentra en la posicion " << index << std::endl;
-                    else
-                        std::cout << nombreBuscar << " no se encontro en la tabla." << std::endl;
-
-
-                }
-                else
-                {
-                    break;
-                }
-            }
-            delete ht;
-
-
-
-            cout << "\nIngrese el código del producto que desea seleccionar: ";
-            cin >> codigoBuscado;
-            cout << "Ingrese la cantidad de stock que desea: ";
-            cin >> stockelegido;
-            // Leer y actualizar inventario
-            nomArch.open("productos_Salud.txt", ios::in);
-            tempArch.open("temp.txt", ios::out);
-
-            //
-
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-                if (List_productos->obtenerPos(i)->getid() == codigoBuscado)
-                {
-                    if (List_productos->obtenerPos(i)->getstock() > 0)
-                    {
-                        List_productos->obtenerPos(i)->disminuir_stock(stockelegido);
-                        cout << "\nProducto seleccionado:\n";
-                        cout << "Código: " << List_productos->obtenerPos(i)->getid() << endl;
-                        cout << "Nombre: " << List_productos->obtenerPos(i)->getnombre() << endl;
-                        cout << "Precio: $" << List_productos->obtenerPos(i)->getprecio() << endl;
-                        cout << "Inventario restante: " << List_productos->obtenerPos(i)->getstock() << endl;
-                        encontrado = true;
-                        List_Carrito->agregaPos(new producto(List_productos->obtenerPos(i)->getid(), List_productos->obtenerPos(i)->getnombre(), List_productos->obtenerPos(i)->getprecio(), List_productos->obtenerPos(i)->getstock()), a);
-                        a++;
-                    }
-                    else
-                    {
-                        cout << "\nProducto sin stock disponible." << endl;
-                    }
-                }
-                tempArch << List_productos->obtenerPos(i)->getid() << " " << List_productos->obtenerPos(i)->getnombre() << " " << List_productos->obtenerPos(i)->getprecio() << " " << List_productos->obtenerPos(i)->getstock() << endl;
-            }
-            //
-
-
-            nomArch.close();
-            tempArch.close();
-
-            // Reemplazar archivo original
-            remove("productos_Salud.txt");
-            rename("temp.txt", "productos_Salud.txt");
-
-            if (!encontrado)
-            {
-                cout << "Producto con código " << codigoBuscado << " no encontrado o sin inventario." << endl;
-            }
+        else if (tecla == 13) {
+            seleccionado = true;
         }
-        else
-        {
-            cout << "No se pudo abrir el archivo." << endl;
-        }
-        
-        break;
-    case 3:
-
-        i = 0;
-        List_productos->eliminarTodo();
-        cout << "- - - - - - - - - - - - - - - - - - - - - - - - - SECCIONES DE BEBIDAS - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-        cout << endl;
-        //ACA VA LA LISTAR SALUD
-        nomArch.open("productos_Bebidas.txt", ios::in);
-        if (nomArch.is_open())
-        {
-            cout << "Lista de productos disponibles:\n";
-            cout << "----------------------------------\n";
-            while (nomArch >> codigo >> nombre >> precio >> inventario)
-            {
-                
-                
-                List_productos->agregaPos(new producto(codigo, nombre, precio, inventario),i);
-                i++;
-            }
-            int selecionOrdenar;
-            cout << "Ordenar de mayor a menor? (1) || Ver lo productos mas Baratos o Caros (2) \n";
-            cin >> selecionOrdenar;
-            switch (selecionOrdenar)
-            {
-            case 1:
-                cout << "Ordenar de mayor a menor(0: Mayor A Menor || 1: Menor a Mayor):\n";
-                cin >> menor;
-                quicksort(List_productos, 0, List_productos->longitud() - 1, menor);
-                break;
-            case 2:
-                cout << "Ver los productos mas baratos o Caros (0: Mas Caros || 1: Mas Baratos):\n";
-                cin >> menor; int indiceBaratosCaros;
-                cout << "Cuantos productos desea ver? (Ingrese un numero):\n"; cin >> indiceBaratosCaros;
-                ObtenerMasCoB(List_productos, menor, indiceBaratosCaros);
-                cout << "\nVolviendo a mostrar la lista...\n";
-            }
-
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-                
-                List_productos->obtenerPos(i)->toString();
-            }
-            nomArch.close();
-
-            
-
-
-            //--HAST TABLE DE PRODUCTOS
-
-            HashTablaString* ht = new HashTablaString(100);
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-                ht->insertar(List_productos->obtenerPos(i)->getnombre(), List_productos->obtenerPos(i));
-
-
-            }
-
-            //ht->imprimir();
-
-            while (true)
-            {
-                cout << "Desea ingresar un producto por nombre? (1 = Si || 0 = No): ";
-                cin >> menor;
-                if (menor == 1)
-                {
-                    std::cout << "\nBuscar nombre: ";
-                    std::cin >> nombreBuscar;
-
-                    int index = ht->buscar(nombreBuscar);
-                    if (index != -1)
-                        std::cout << nombreBuscar << " se encuentra en la posicion " << index << std::endl;
-                    else
-                        std::cout << nombreBuscar << " no se encontro en la tabla." << std::endl;
-
-                    
-                }
-                else
-                {
-                    break;
-                }
-            }
-			delete ht; // Liberar memoria de la tabla hash
-
-            //
-            
-
-
-
-
-            
-
-            cout << "\nIngrese el código del producto que desea seleccionar: ";
-            cin >> codigoBuscado;
-            cout << "Ingrese la cantidad de stock que desea: ";
-            cin >> stockelegido;
-            // Leer y actualizar inventario
-            nomArch.open("productos_Bebidas.txt", ios::in);
-            tempArch.open("temp.txt", ios::out);
-
-            //
-
-            for (int i = 0; i < List_productos->longitud(); i++)
-            {
-                if (List_productos->obtenerPos(i)->getid()==codigoBuscado)
-                {
-                    if (List_productos->obtenerPos(i)->getstock() > 0)
-                    {
-                        List_productos->obtenerPos(i)->disminuir_stock(stockelegido);
-                        cout << "\nProducto seleccionado:\n";
-                        cout << "Código: " << List_productos->obtenerPos(i)->getid() << endl;
-                        cout << "Nombre: " << List_productos->obtenerPos(i)->getnombre() << endl;
-                        cout << "Precio: $" << List_productos->obtenerPos(i)->getprecio() << endl;
-                        cout << "Inventario restante: " << List_productos->obtenerPos(i)->getstock() << endl;
-                        encontrado = true;
-                        List_Carrito->agregaPos(new producto(List_productos->obtenerPos(i)->getid(), List_productos->obtenerPos(i)->getnombre(), List_productos->obtenerPos(i)->getprecio(), List_productos->obtenerPos(i)->getstock()), a);
-                        a++;
-                    }
-                    else
-                    {
-                        cout << "\nProducto sin stock disponible." << endl;
-                    }
-                }
-                tempArch << List_productos->obtenerPos(i)->getid() << " " << List_productos->obtenerPos(i)->getnombre() << " " << List_productos->obtenerPos(i)->getprecio() << " " << List_productos->obtenerPos(i)->getstock() << endl;
-            }
-            //
-                       
-
-            nomArch.close();
-            tempArch.close();
-
-            // Reemplazar archivo original
-            remove("productos_Bebidas.txt");
-            rename("temp.txt", "productos_Bebidas.txt");
-
-            if (!encontrado)
-            {
-                cout << "Producto con código " << codigoBuscado << " no encontrado o sin inventario." << endl;
-            }
-        }
-        else
-        {
-            cout << "No se pudo abrir el archivo." << endl;
-        }
-
-        break;
     }
+
+    string archivo = archivos[seleccion];
+    List_productos->eliminarTodo();
+    ifstream nomArch(archivo);
+    ofstream tempArch;
+    int codigo, inventario;
+    string nombre, nombreBuscar;
+    float precio;
+    int i = 0;
+    bool menor;
+    int codigoBuscado, stockelegido;
+    bool encontrado = false;
+
+    if (!nomArch.is_open()) {
+        gotoxy(centrarX("No se pudo abrir el archivo."), 15);
+        cout << "No se pudo abrir el archivo.";
+        gotoxy(centrarX("No se pudo abrir el archivo."), 16);
+        system("pause");
+        return;
+    }
+
+    while (nomArch >> codigo >> nombre >> precio >> inventario) {
+        List_productos->agregaPos(new producto(codigo, nombre, precio, inventario), i++);
+    }
+    nomArch.close();
+
+    int modo = 0;
+    seleccionado = false;
+    while (!seleccionado) {
+        system("cls");
+        gotoxy(centrarX("Ordenar o ver extremos de precio"), 2);
+        cout << "Ordenar o ver extremos de precio" << endl;
+        string opciones[] = { "Ordenar", "Ver productos mas baratos/caros" };
+        for (int i = 0; i < 2; i++) {
+            gotoxy(centrarX(opciones[i]), 5 + i * 2);
+            if (i == modo) {
+                SetConsoleTextAttribute(hConsole, BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                cout << ">> " << opciones[i] << " <<";
+                SetConsoleTextAttribute(hConsole, 7);
+            }
+            else {
+                cout << "   " << opciones[i];
+            }
+        }
+        int tecla = _getch();
+        if (tecla == 224) {
+            tecla = _getch();
+            if (tecla == 72 && modo > 0) modo--;
+            if (tecla == 80 && modo < 1) modo++;
+        }
+        else if (tecla == 13) {
+            seleccionado = true;
+        }
+    }
+
+    if (modo == 0) {
+        bool asc = true;
+        seleccionado = false;
+        while (!seleccionado) {
+            system("cls");
+            gotoxy(centrarX("Orden ascendente o descendente"), 2);
+            cout << "Orden ascendente o descendente" << endl;
+            string orden[] = { "Ascendente", "Descendente" };
+            for (int i = 0; i < 2; i++) {
+                gotoxy(centrarX(orden[i]), 5 + i * 2);
+                if ((asc && i == 0) || (!asc && i == 1)) {
+                    SetConsoleTextAttribute(hConsole, BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    cout << ">> " << orden[i] << " <<";
+                    SetConsoleTextAttribute(hConsole, 7);
+                }
+                else {
+                    cout << "   " << orden[i];
+                }
+            }
+            int tecla = _getch();
+            if (tecla == 224) {
+                tecla = _getch();
+                if (tecla == 72 || tecla == 80) asc = !asc;
+            }
+            else if (tecla == 13) {
+                seleccionado = true;
+            }
+        }
+        menor = asc;
+        quicksort(List_productos, 0, List_productos->longitud() - 1, menor);
+    }
+    else {
+        bool barato = true;
+        seleccionado = false;
+        while (!seleccionado) {
+            system("cls");
+            gotoxy(centrarX("Ver productos mas caros o mas baratos"), 2);
+            cout << "Ver productos mas caros o mas baratos" << endl;
+
+            string extremos[] = { "Mas baratos", "Mas caros" };
+            for (int i = 0; i < 2; i++) {
+                gotoxy(centrarX(extremos[i]), 5 + i * 2);
+                if ((barato && i == 0) || (!barato && i == 1)) {
+                    SetConsoleTextAttribute(hConsole, BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    cout << ">> " << extremos[i] << " <<";
+                    SetConsoleTextAttribute(hConsole, 7);
+                }
+                else {
+                    cout << "   " << extremos[i];
+                }
+            }
+            int tecla = _getch();
+            if (tecla == 224) {
+                tecla = _getch();
+                if (tecla == 72 || tecla == 80) barato = !barato;
+            }
+            else if (tecla == 13) {
+                seleccionado = true;
+            }
+        }
+        menor = barato;
+        int n;
+        gotoxy(centrarX("Cantidad de productos a ver:"), 10);
+        cout << "Cantidad de productos a ver:";
+        gotoxy(centrarX("Cantidad de productos a ver:") + 33, 10);
+        cin >> n;
+        ObtenerMasCoB(List_productos, menor, n);
+        system("pause");
+    }
+
+    // Mostrar tabla de productos con selector
+    seleccionado = false;
+    bool porNombre = false;
+    while (!seleccionado) {
+        system("cls");
+        gotoxy(centrarX("Seleccion de producto"), 2);
+		cout << "- - - - - - SELECCION DE PRODUCTO - - - - - -";
+        string metodos[] = { "Buscar por nombre", "Seleccionar en la tabla" };
+        for (int i = 0; i < 2; i++) {
+            gotoxy(centrarX(metodos[i]), 5 + i * 2);
+            if ((porNombre && i == 0) || (!porNombre && i == 1)) {
+                SetConsoleTextAttribute(hConsole, BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                cout << ">> " << metodos[i] << " <<";
+                SetConsoleTextAttribute(hConsole, 7);
+            }
+            else {
+                cout << "   " << metodos[i];
+            }
+        }
+        int tecla = _getch();
+        if (tecla == 224) {
+            tecla = _getch();
+            if (tecla == 72 || tecla == 80) porNombre = !porNombre;
+        }
+        else if (tecla == 13) {
+            seleccionado = true;
+        }
+    }
+
+    producto* productoSeleccionado = nullptr;
+    if (porNombre) {
+        gotoxy(centrarX("Ingrese el nombre del producto:"), 12);
+        cout << "Ingrese el nombre del producto:";
+        gotoxy(centrarX("Ingrese el nombre del producto:") + 33, 12);
+        cin >> nombreBuscar;
+        HashTablaString* ht = new HashTablaString(100);
+        for (int i = 0; i < List_productos->longitud(); i++) {
+            ht->insertar(List_productos->obtenerPos(i)->getnombre(), List_productos->obtenerPos(i));
+        }
+        int index = ht->buscar(nombreBuscar);
+        if (index != -1) {
+            productoSeleccionado = List_productos->obtenerPos(index);
+        }
+        else {
+            gotoxy(centrarX("Producto no encontrado."), 14);
+            cout << "Producto no encontrado.";
+            gotoxy(centrarX("Producto no encontrado."), 15);
+            system("pause");
+        }
+        delete ht;
+    }
+    else {
+        int indice = 0;
+        bool elegido = false;
+        while (!elegido) {
+            system("cls");
+            gotoxy(centrarX("ID   | NOMBRE           | PRECIO   | STOCK"), 2);
+			cout << "ID   | NOMBRE           | PRECIO   | STOCK" << endl;
+            for (int i = 0; i < List_productos->longitud(); i++) {
+                producto* p = List_productos->obtenerPos(i);
+                string linea = p->toString_tabla();
+                gotoxy(centrarX(linea), 4 + i);
+                if (i == indice) {
+                    SetConsoleTextAttribute(hConsole, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    cout << "  " << linea;
+                    SetConsoleTextAttribute(hConsole, 7);
+                }
+                else {
+                    cout << "  " << linea;
+                }
+            }
+            int tecla = _getch();
+            if (tecla == 224) {
+                tecla = _getch();
+                if (tecla == 72 && indice > 0) indice--;
+                if (tecla == 80 && indice < List_productos->longitud() - 1) indice++;
+            }
+            else if (tecla == 13) {
+                productoSeleccionado = List_productos->obtenerPos(indice);
+                elegido = true;
+            }
+        }
+    }
+
+    if (productoSeleccionado) {
+        gotoxy(centrarX("Ingrese cantidad a comprar:"), 30);
+        cout << "Ingrese cantidad a comprar:";
+        gotoxy(centrarX("Ingrese cantidad a comprar:") + 29, 30);
+        cin >> stockelegido;
+        if (productoSeleccionado->getstock() >= stockelegido) {
+            productoSeleccionado->disminuir_stock(stockelegido);
+            List_Carrito->agregaPos(new producto(productoSeleccionado->getid(), productoSeleccionado->getnombre(), productoSeleccionado->getprecio(), stockelegido), a);
+            encontrado = true;
+        }
+        else {
+            gotoxy(centrarX("Stock insuficiente."), 32);
+            cout << "Stock insuficiente.";
+            gotoxy(centrarX("Stock insuficiente."), 33);
+        }
+    }
+
+    tempArch.open("temp.txt", ios::out);
+    for (int i = 0; i < List_productos->longitud(); i++) {
+        producto* p = List_productos->obtenerPos(i);
+        tempArch << p->getid() << " " << p->getnombre() << " " << p->getprecio() << " " << p->getstock() << endl;
+    }
+    tempArch.close();
+    remove(archivo.c_str());
+    rename("temp.txt", archivo.c_str());
+
+    if (encontrado) {
+        gotoxy(centrarX("Producto agregado al carrito."), 34);
+        cout << "Producto agregado al carrito.";
+        gotoxy(centrarX("Producto agregado al carrito."), 35);
+    }
+    else {
+        gotoxy(centrarX("Producto no fue agregado."), 34);
+        cout << "Producto no fue agregado.";
+        gotoxy(centrarX("Producto no fue agregado."), 35);
+    }
+    system("pause");
 }
+
+
+
+
 
 inline void Controlador::RegistarCliente()
 {
-    string Correo, contraseña, nombre;
+    string Correo, contraseÃ±a, nombre;
     int telefono;
     string distrito;
     cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - REGISTRO DE USUARIO - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
     cout << "Ingrese su correo :"; cin >> Correo;
-    cout << "Ingrese su contraseña :"; cin >> contraseña;
+    cout << "Ingrese su contraseÃ±a :"; cin >> contraseÃ±a;
     cout << "Ingrese su nombre:"; cin >> nombre;
     cout << "Ingrese su numero de telefono :"; cin >> telefono;
     cout << "Ingrese su distrito :" << endl;
@@ -639,7 +474,7 @@ inline void Controlador::RegistarCliente()
 }
 
 inline void Controlador::RegistrarUsuario() {
-    string nombre, correo, contraseña, distrito;
+    string nombre, correo, contraseÃ±a, distrito;
     int telefono;
 
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -650,14 +485,14 @@ inline void Controlador::RegistrarUsuario() {
     COORD coordTelefono = { (SHORT)centrarX("Telefono: "), 7 };
     COORD coordDistrito = { (SHORT)centrarX("Distrito: "), 9 };
     COORD coordCorreo = { (SHORT)centrarX("Correo: "), 11 };
-    COORD coordContrasena = { (SHORT)centrarX("Contraseña: "), 13 };
+    COORD coordContrasena = { (SHORT)centrarX("ContraseÃ±a: "), 13 };
 
     // Mostrar campos
     SetConsoleCursorPosition(hConsole, coordNombre);     cout << "Nombre: ";
     SetConsoleCursorPosition(hConsole, coordTelefono);   cout << "Telefono: ";
     SetConsoleCursorPosition(hConsole, coordDistrito);   cout << "Distrito: ";
     SetConsoleCursorPosition(hConsole, coordCorreo);     cout << "Correo: ";
-    SetConsoleCursorPosition(hConsole, coordContrasena); cout << "Contraseña: ";
+    SetConsoleCursorPosition(hConsole, coordContrasena); cout << "ContraseÃ±a: ";
 
     // Captura de datos centrados
     gotoxy((SHORT)(coordNombre.X + 10), coordNombre.Y); cin >> nombre;
@@ -665,7 +500,7 @@ inline void Controlador::RegistrarUsuario() {
     gotoxy((SHORT)(coordDistrito.X + 10), coordDistrito.Y); cin >> distrito;
     gotoxy((SHORT)(coordCorreo.X + 8), coordCorreo.Y); cin >> correo;
     gotoxy((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
-    contraseña = leerContrasenaOculta((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
+    contraseÃ±a = leerContrasenaOculta((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
 
     // Verifica si ya existe
     if (arbolUsuarios.buscar(nombre) != nullptr) {
@@ -676,7 +511,7 @@ inline void Controlador::RegistrarUsuario() {
     }
 
     // Insertar y guardar
-    User* nuevo = new User(nombre, telefono, distrito, correo, contraseña);
+    User* nuevo = new User(nombre, telefono, distrito, correo, contraseÃ±a);
     arbolUsuarios.insertar(nuevo);
     guardarUsuariosEnArchivo(arbolUsuarios, "usuarios.txt");
 
@@ -686,33 +521,33 @@ inline void Controlador::RegistrarUsuario() {
 }
 
 bool Controlador::IniciarSesion() {
-    string nombre, contraseña;
+    string nombre, contraseÃ±a;
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     system("cls");
 
     COORD coordNombre = { (SHORT)centrarX("Nombre: "), 8 };
-    COORD coordContrasena = { (SHORT)centrarX("Contraseña: "), 10 };
+    COORD coordContrasena = { (SHORT)centrarX("ContraseÃ±a: "), 10 };
 
     // Mostrar etiquetas
     SetConsoleCursorPosition(hConsole, coordNombre);     cout << "Nombre: ";
-    SetConsoleCursorPosition(hConsole, coordContrasena); cout << "Contraseña: ";
+    SetConsoleCursorPosition(hConsole, coordContrasena); cout << "ContraseÃ±a: ";
 
-    // Entrada de datos en posición fija
+    // Entrada de datos en posiciÃ³n fija
     gotoxy((SHORT)(coordNombre.X + 9), coordNombre.Y); cin >> nombre;
     gotoxy((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
-    contraseña = leerContrasenaOculta((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
+    contraseÃ±a = leerContrasenaOculta((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
 
-    // Validación de usuario
+    // ValidaciÃ³n de usuario
     User* usuario = arbolUsuarios.buscar(nombre);
-    if (usuario && usuario->getContraseña() == contraseña) {
-        gotoxy(centrarX("¡Bienvenido!"), 13);
-        cout << "¡Bienvenido, " << usuario->getNombre() << "!" << endl;
+    if (usuario && usuario->getContraseÃ±a() == contraseÃ±a) {
+        gotoxy(centrarX("Â¡Bienvenido!"), 13);
+        cout << "Â¡Bienvenido, " << usuario->getNombre() << "!" << endl;
         system("pause");
         return true;
     }
     else {
         gotoxy(centrarX("Credenciales incorrectas."), 13);
-        cout << "Usuario o contraseña incorrectos." << endl;
+        cout << "Usuario o contraseÃ±a incorrectos." << endl;
         system("pause");
         return false;
     }
@@ -765,7 +600,7 @@ inline void Controlador::Vercarrito()
 
     case 2:
 
-        cout << "Ingrese el código del producto a eliminar: "; cin >> eliminar;
+        cout << "Ingrese el cÃ³digo del producto a eliminar: "; cin >> eliminar;
 
 
         for (int i = 0; i < List_Carrito->longitud(); i++)
@@ -796,7 +631,7 @@ void Controlador::Menu() {
     while (corriendo) {
         system("cls");
 
-        // Arte centrado (puedes agregar más)
+        // Arte centrado (puedes agregar mÃ¡s)
         string arte[] = {
             "                -=                ",
             "        .     -##:                ",
@@ -842,10 +677,10 @@ void Controlador::Menu() {
 
         int tecla = _getch();
         switch (tecla) {
-        case 72: // ?
+        case 72: // â†‘
             seleccion = (seleccion - 1 + n) % n;
             break;
-        case 80: // ?
+        case 80: // â†“
             seleccion = (seleccion + 1) % n;
             break;
         case 13: // Enter
@@ -1004,17 +839,17 @@ inline void Controlador::VerHistorial()
 inline void Controlador::GenerarArbolBalanceado()
 {
     if (Lista_Historial->esVacia()) {
-        cout << "El historial de productos está vacío. No se puede generar un árbol AVL." << endl;
+        cout << "El historial de productos estÃ¡ vacÃ­o. No se puede generar un Ã¡rbol AVL." << endl;
         return;
     }
-    cout << "\n--- Generando Árbol AVL de Historial de Productos ---\n";
+    cout << "\n--- Generando Ãrbol AVL de Historial de Productos ---\n";
     for (int i = 0; i < Lista_Historial->longitud(); ++i) {
         producto* p = Lista_Historial->obtenerPos(i);
         arbol_historial.insertar(p);
 
     }
-    cout << "Árbol AVL del historial de productos generado correctamente.\n";
-    cout << "\n--- Contenido del Árbol AVL (ordenado por nombre) ---\n";
+    cout << "Ãrbol AVL del historial de productos generado correctamente.\n";
+    cout << "\n--- Contenido del Ãrbol AVL (ordenado por nombre) ---\n";
     arbol_historial.enOrden([](producto* p) {
         cout << "  - " << p->getnombre() << " (ID: " << p->getid() << ", Precio: $" << p->getprecio() << ")\n";
     });
