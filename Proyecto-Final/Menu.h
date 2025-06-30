@@ -44,23 +44,20 @@ void ordenarListaPorPrecio(Lista<producto*>* lista) {
     } while (cambio);
 }
 
-string leerContrasena() {
-    string contrasena;
+string leerContrasenaOculta(short x, short y) {
+    string pass = "";
     char ch;
-    while ((ch = _getch()) != '\r') { // '\r' es Enter
-        if (ch == '\b') { // Retroceso
-            if (!contrasena.empty()) {
-                contrasena.pop_back();
-                cout << "\b \b";
-            }
+    while ((ch = _getch()) != 13) {  // 13 = Enter
+        if (ch == 8 && !pass.empty()) {  // Backspace
+            pass.pop_back();
+            cout << "\b \b";
         }
-        else {
-            contrasena += ch;
+        else if (isprint(ch)) {
+            pass.push_back(ch);
             cout << '*';
         }
     }
-    cout << endl;
-    return contrasena;
+    return pass;
 }
 
 
@@ -644,37 +641,79 @@ inline void Controlador::RegistarCliente()
 inline void Controlador::RegistrarUsuario() {
     string nombre, correo, contraseña, distrito;
     int telefono;
-    cout << "Nombre: "; cin >> nombre;
-    cout << "Telefono: "; cin >> telefono;
-    cout << "Distrito: "; cin >> distrito;
-    cout << "Correo: "; cin >> correo;
-    cout << "Contraseña: "; cin >> contraseña;
 
-    // Verifica si ya existe el usuario
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    system("cls");
+
+    // Coordenadas
+    COORD coordNombre = { (SHORT)centrarX("Nombre: "), 5 };
+    COORD coordTelefono = { (SHORT)centrarX("Telefono: "), 7 };
+    COORD coordDistrito = { (SHORT)centrarX("Distrito: "), 9 };
+    COORD coordCorreo = { (SHORT)centrarX("Correo: "), 11 };
+    COORD coordContrasena = { (SHORT)centrarX("Contraseña: "), 13 };
+
+    // Mostrar campos
+    SetConsoleCursorPosition(hConsole, coordNombre);     cout << "Nombre: ";
+    SetConsoleCursorPosition(hConsole, coordTelefono);   cout << "Telefono: ";
+    SetConsoleCursorPosition(hConsole, coordDistrito);   cout << "Distrito: ";
+    SetConsoleCursorPosition(hConsole, coordCorreo);     cout << "Correo: ";
+    SetConsoleCursorPosition(hConsole, coordContrasena); cout << "Contraseña: ";
+
+    // Captura de datos centrados
+    gotoxy((SHORT)(coordNombre.X + 10), coordNombre.Y); cin >> nombre;
+    gotoxy((SHORT)(coordTelefono.X + 10), coordTelefono.Y); cin >> telefono;
+    gotoxy((SHORT)(coordDistrito.X + 10), coordDistrito.Y); cin >> distrito;
+    gotoxy((SHORT)(coordCorreo.X + 8), coordCorreo.Y); cin >> correo;
+    gotoxy((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
+    contraseña = leerContrasenaOculta((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
+
+    // Verifica si ya existe
     if (arbolUsuarios.buscar(nombre) != nullptr) {
+        gotoxy(centrarX("El usuario ya existe."), 15);
         cout << "El usuario ya existe." << endl;
+        system("pause");
         return;
     }
 
+    // Insertar y guardar
     User* nuevo = new User(nombre, telefono, distrito, correo, contraseña);
     arbolUsuarios.insertar(nuevo);
     guardarUsuariosEnArchivo(arbolUsuarios, "usuarios.txt");
+
+    gotoxy(centrarX("Usuario registrado correctamente."), 15);
     cout << "Usuario registrado correctamente." << endl;
+    system("pause");
 }
 
 bool Controlador::IniciarSesion() {
     string nombre, contraseña;
-    cout << "Nombre: "; cin >> nombre;
-    cout << "Contraseña: ";
-    contraseña = leerContrasena(); // Aquí se oculta la contraseña con asteriscos
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    system("cls");
 
+    COORD coordNombre = { (SHORT)centrarX("Nombre: "), 8 };
+    COORD coordContrasena = { (SHORT)centrarX("Contraseña: "), 10 };
+
+    // Mostrar etiquetas
+    SetConsoleCursorPosition(hConsole, coordNombre);     cout << "Nombre: ";
+    SetConsoleCursorPosition(hConsole, coordContrasena); cout << "Contraseña: ";
+
+    // Entrada de datos en posición fija
+    gotoxy((SHORT)(coordNombre.X + 9), coordNombre.Y); cin >> nombre;
+    gotoxy((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
+    contraseña = leerContrasenaOculta((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
+
+    // Validación de usuario
     User* usuario = arbolUsuarios.buscar(nombre);
     if (usuario && usuario->getContraseña() == contraseña) {
+        gotoxy(centrarX("¡Bienvenido!"), 13);
         cout << "¡Bienvenido, " << usuario->getNombre() << "!" << endl;
+        system("pause");
         return true;
     }
     else {
+        gotoxy(centrarX("Credenciales incorrectas."), 13);
         cout << "Usuario o contraseña incorrectos." << endl;
+        system("pause");
         return false;
     }
 }
