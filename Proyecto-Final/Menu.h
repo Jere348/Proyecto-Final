@@ -563,68 +563,194 @@ bool Controlador::IniciarSesion() {
 
 inline void Controlador::Vercarrito()
 {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    system("cls");
+
+    /* ========== 1. ELEGIR ORDEN DE LISTADO ========== */
     bool menor = false;
-    int eliminar;
-    int opccarito;
-    cout << "- - - - - - - - - - - - - - - - - - - - - CARRITO - - - - - - - - - - - - - - - - - - -" << endl;
+    int seleccionOrden = 0;
+    bool seleccionado = false;
 
-    cout << "Ordenar de mayor a menor(0: Mayor A Menor || 1: Menor a Mayor):\n";
-    cin >> menor;
-    mergeSort(List_Carrito, 0, List_Carrito->longitud() - 1, menor); // true: menor a mayor, false: mayor a menor
-
-    for (int i = 0; i < List_Carrito->longitud(); i++)
-    {
-        List_Carrito->obtenerPos(i)->toString();
-    }
-    cin >> opccarito;
-    switch (opccarito)
-    {
-    case 1:
+    while (!seleccionado) {
         system("cls");
-        cout << "Resumen del pedido: "<<endl;
-        
-        for (int i = 0; i < List_Carrito->longitud(); i++)
-        {
-            Cola_resumen->encolar(new producto(List_Carrito->obtenerPos(i)->getid(),
-                List_Carrito->obtenerPos(i)->getnombre(), List_Carrito->obtenerPos(i)->getprecio(), List_Carrito->obtenerPos(i)->getstock()));
+        string titulo = "ORDENAR PRODUCTOS DEL CARRITO";
+        gotoxy(centrarX(titulo), 2);  cout << "- - - - - - " << titulo << " - - - - - -";
 
-        }
-        producto* Producto;
-        do
-        {
-            Producto = Cola_resumen->desencolar();
-            Producto->toString();
-
-        } while (!Cola_resumen->esVacia());
-
-        ListarRepartidores();
-
-        break;
-        
-        
-
-
-
-
-    case 2:
-
-        cout << "Ingrese el código del producto a eliminar: "; cin >> eliminar;
-
-
-        for (int i = 0; i < List_Carrito->longitud(); i++)
-        {
-            if (List_Carrito->obtenerPos(i)->getid() == eliminar)
-            {
-                List_Carrito->eliminaPos(i);
+        string opciones[] = { "Mayor a Menor", "Menor a Mayor" };
+        for (int i = 0; i < 2; ++i) {
+            gotoxy(centrarX(opciones[i]), 5 + i * 2);
+            if (i == seleccionOrden) {
+                SetConsoleTextAttribute(hConsole,
+                    BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                cout << ">> " << opciones[i] << " <<";
+                SetConsoleTextAttribute(hConsole, 7);
             }
-            
+            else {
+                cout << "   " << opciones[i];
+            }
         }
 
+        int tecla = _getch();
+        if (tecla == 224) {
+            tecla = _getch();
+            if (tecla == 72 && seleccionOrden > 0) seleccionOrden--;
+            if (tecla == 80 && seleccionOrden < 1) seleccionOrden++;
+        }
+        else if (tecla == 13) {
+            menor = (seleccionOrden == 1);
+            seleccionado = true;
+        }
+    }
+
+    /* ========== 2. ORDENAR Y MOSTRAR TABLA ========== */
+    mergeSort(List_Carrito, 0, List_Carrito->longitud() - 1, menor);
+
+    system("cls");
+    string titulo = "CARRITO DE COMPRAS";
+    gotoxy(centrarX("- - - - - - " + titulo + " - - - - - -"), 2);
+    cout << "- - - - - - " << titulo << " - - - - - -" << endl;
+
+    int y = 4;
+    string headerTop = "+------+-----------------+----------+--------+";
+    string headerMid = "| ID   | Nombre          | Precio   | Stock  |";
+    int x = centrarX(headerTop);
+
+    gotoxy(x, y++); cout << headerTop;
+    gotoxy(x, y++); cout << headerMid;
+    gotoxy(x, y++); cout << headerTop;
+
+    for (int i = 0; i < List_Carrito->longitud(); i++) {
+        producto* p = List_Carrito->obtenerPos(i);
+        gotoxy(x, y++);
+        cout << "| "
+            << setw(4) << left << p->getid() << " | "
+            << setw(15) << left << p->getnombre() << " | "
+            << setw(8) << fixed << setprecision(2) << p->getprecio() << " | "
+            << setw(6) << p->getstock() << " |";
+    }
+    gotoxy(x, y++); cout << headerTop;
+
+    /* ========== 3. MENÚ DE OPCIONES (Confirmar / Eliminar / Volver) ========== */
+    int seleccion = 0;
+    seleccionado = false;
+    string opcionesCarrito[] = { "Confirmar pedido", "Eliminar producto", "Volver" };
+    const int n = sizeof(opcionesCarrito) / sizeof(opcionesCarrito[0]);
+
+    while (!seleccionado) {
+        for (int i = 0; i < n; ++i) {
+            int yOpt = y + 2 + i * 2;
+            gotoxy(0, yOpt);                          // Limpia toda la línea antes de escribir
+            cout << string(125, ' ');                // Asume consola de 120 columnas
+
+            gotoxy(centrarX(opcionesCarrito[i]), yOpt);
+            if (i == seleccion) {
+                SetConsoleTextAttribute(hConsole,
+                    BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                cout << ">> " << opcionesCarrito[i] << " <<";
+                SetConsoleTextAttribute(hConsole, 7);
+            }
+            else {
+                cout << "   " << opcionesCarrito[i];
+            }
+        }
+
+        int tecla = _getch();
+        if (tecla == 224) {
+            tecla = _getch();
+            if (tecla == 72 && seleccion > 0) seleccion--;
+            if (tecla == 80 && seleccion < n - 1) seleccion++;
+        }
+        else if (tecla == 13) {
+            seleccionado = true;
+        }
+    }
+
+
+    /* ========== 4. ACCIONES SEGÚN SELECCIÓN ========== */
+    switch (seleccion) {
+
+        /* ---- 4.1 CONFIRMAR / RESUMEN ---- */
+    case 0: {
+        system("cls");
+        gotoxy(centrarX("Resumen del pedido"), 2);
+        cout << "- - - - - -  Resumen del pedido  - - - - - -";
+
+        if (List_Carrito->esVacia()) {
+            gotoxy(centrarX("El carrito está vacío."), 5);
+            cout << "El carrito está vacío.";
+            system("pause");
+            return;
+        }
+
+        // Encolar productos para el resumen
+        for (int i = 0; i < List_Carrito->longitud(); ++i)
+            Cola_resumen->encolar(new producto(*List_Carrito->obtenerPos(i)));
+
+        // Calcular ancho dinámico para el nombre
+        int maxNombre = 10;
+        for (int i = 0; i < List_Carrito->longitud(); ++i)
+            maxNombre = max<int>(maxNombre, List_Carrito->obtenerPos(i)->getnombre().length());
+
+        const int COL_ID = 5, COL_NOMBRE = maxNombre + 2, COL_PRECIO = 10, COL_STOCK = 7;
+        const int ANCHO = COL_ID + COL_NOMBRE + COL_PRECIO + COL_STOCK + 5 * 3 + 1;
+
+        int x0 = centrarX(string(ANCHO, ' '));
+        int y0 = 4;
+
+        string lineaH = "+" + string(COL_ID + 2, '-') + "+"
+            + string(COL_NOMBRE + 2, '-') + "+"
+            + string(COL_PRECIO + 2, '-') + "+"
+            + string(COL_STOCK + 2, '-') + "+";
+
+        gotoxy(x0, y0++); cout << lineaH;
+        gotoxy(x0, y0++); cout << "| "
+            << setw(COL_ID) << left << "ID" << " | "
+            << setw(COL_NOMBRE) << left << "NOMBRE" << " | "
+            << setw(COL_PRECIO) << left << "PRECIO" << " | "
+            << setw(COL_STOCK) << left << "CANT." << " |";
+        gotoxy(x0, y0++); cout << lineaH;
+
+        while (!Cola_resumen->esVacia()) {
+            producto* P = Cola_resumen->desencolar();
+            gotoxy(x0, y0++);
+            cout << "| "
+                << setw(COL_ID) << right << P->getid() << " | "
+                << setw(COL_NOMBRE) << left << P->getnombre() << " | "
+                << setw(COL_PRECIO) << right << fixed << setprecision(2)
+                << P->getprecio() << " | "
+                << setw(COL_STOCK) << right << P->getstock() << " |";
+        }
+        gotoxy(x0, y0++); cout << lineaH;
+
+        system("pause");
+        ListarRepartidores();
         break;
-    default:
+    }
+
+          /* ---- 4.2 ELIMINAR ---- */
+    case 1: {
+        int eliminar;
+        int yPrompt = 6 + List_Carrito->longitud() + n * 2 + 1;
+        gotoxy(centrarX("Ingrese el código del producto a eliminar:"), yPrompt);
+        cout << "Ingrese el código del producto a eliminar: ";
+        cin >> eliminar;
+
+        for (int i = 0; i < List_Carrito->longitud(); ++i) {
+            if (List_Carrito->obtenerPos(i)->getid() == eliminar) {
+                List_Carrito->eliminaPos(i);
+                break;
+            }
+        }
+        break;
+    }
+
+          /* ---- 4.3 VOLVER ---- */
+    case 2:
+        // Nada, solo regresar
         break;
     }
 }
+
 
 void Controlador::Menu() {
     string opciones[] = {

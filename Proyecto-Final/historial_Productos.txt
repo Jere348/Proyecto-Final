@@ -3,3 +3,6 @@
 304 Leche_entera 1.4 19
 104 Curitas 0.5 43
 203 Aceite_vegetal 3.5 3
+302 Jugo_de_naranja 1.2 2
+202 Fideos 1.1 1
+201 Arroz 0.9 2
