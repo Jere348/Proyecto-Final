@@ -13,7 +13,11 @@
 #include <conio.h>
 #include <windows.h>
 #include <vector>
+#include "Grafo.h"
 //Hola
+
+User* usuario = nullptr; // Variable global para el usuario actual;
+CGrafo<int>* G = new CGrafo<int>();
 
 void gotoxy(int x, int y) {
     COORD coord = { static_cast<SHORT>(x), static_cast<SHORT>(y) };
@@ -61,6 +65,54 @@ string leerContrasenaOculta(short x, short y) {
 }
 
 
+string generarContraseña(int longitud = 8) {
+    string caracteres = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    string pass;
+    for (int i = 0; i < longitud; ++i) {
+        pass += caracteres[rand() % caracteres.size()];
+    }
+    return pass;
+}
+
+int generarTelefono() {
+    int telefono = 9 * 100000000;
+    for (int i = 0; i < 8; ++i) {
+        telefono += (rand() % 10) * pow(10, 7 - i);
+    }
+    return telefono;
+}
+
+// Generar un solo usuario
+User* generarUsuario(int id) {
+    vector<string> nombres = { "Luis", "Ana", "Carlos", "María", "Pedro", "Lucía", "Diego", "Sofía", "Jorge", "Elena" };
+    vector<string> apellidos = { "Gómez", "Pérez", "Ramírez", "Torres", "Sánchez", "Díaz", "Castro", "Vargas", "Mendoza", "Ríos" };
+    vector<string> distritos = { "SanMiguel", "Barranco", "SanIsidro" };
+
+    string nombre = nombres[rand() % nombres.size()] + " " + apellidos[rand() % apellidos.size()];
+
+    string correo = nombre;
+    replace(correo.begin(), correo.end(), ' ', '.');
+    transform(correo.begin(), correo.end(), correo.begin(), ::tolower);
+    correo += to_string(id) + "@correo.com";
+
+    string contraseña = generarContraseña();
+    string distrito = distritos[rand() % distritos.size()];
+    int telefono = generarTelefono();
+
+    return new User(nombre, telefono, distrito, correo, contraseña);
+}
+
+
+void cargarDataset() {
+    srand(time(0));
+    AVLArbol<User> UserFromDataSet;
+    User* usuario = new User();
+
+    for (int i = 0; i < 100; ++i) {
+        usuario = generarUsuario(i);
+        UserFromDataSet.insertar(usuario);
+    }
+}
 
 class Controlador
 {
@@ -82,12 +134,16 @@ public:
     void PedidoRealizado();
 
     double CalcularTotal(Cola<Repartidor*>* Cola_Repartidor, int indx, double precio, int i = 0) {
+        if (indx < 0 || indx >= Cola_Repartidor->longitud()) {
+            cerr << "Índice fuera de rango en CalcularTotal.\n";
+            return precio;
+        }
         if (i == indx) {
             return precio + Cola_Repartidor->obtenerPos(indx)->gettarifa();
         }
-
         return CalcularTotal(Cola_Repartidor, indx, precio, i + 1);
     }
+
     void GuardarHistorial() {
         ofstream archivo("historial_Productos.txt", ios::app);
         if (archivo.is_open()) {
@@ -115,7 +171,7 @@ private:
     Lista<producto*>* List_productos;
     Cola<producto*>* Cola_resumen;
     Lista<producto*>* Lista_Historial;
-
+    User* usuario = nullptr;
     Cliente* user;
     Repartidor* repart;
     AVLArbol<User> arbolUsuarios;
@@ -150,22 +206,183 @@ inline Controlador::Controlador()
 
 inline void Controlador::ListarRepartidores()
 {
-    cout << "- - - - - - - - - - - - - - - - - - - LISTA DE REPARTIDORES - - - - - - - - - - - - - - - - - - - - -" << endl;
-	Cola<Repartidor*>* temp_Cola = new Cola<Repartidor*>();//Cola temporal para almacenar repartidores
-	// Mostrar repartidores y almacenarlos en la cola temporal
-    while (!Cola_Repartidor->esVacia())
-    {
-        Repartidor* repar = Cola_Repartidor->desencolar();
-        repar->MostrarTdo();
-        temp_Cola->encolar(repar);
+    //
+
+    G->adicionarVertice(0); //indice=0 SM
+    G->adicionarVertice(1); //indice=1 bARRANCO
+    G->adicionarVertice(2); //indice=2 JESUS MARIA
+
+
+    //Agregar los arcos
+    G->adicionarArco(0, 0); //indice=0
+    G->modificarArco(0, 0, 0);
+    G->adicionarArco(0, 1);//indice=1
+    G->modificarArco(0, 1, 12);
+    G->adicionarArco(0, 2);//indice=1
+    G->modificarArco(0, 2, 13);
+
+    G->adicionarArco(1, 0); //indice=0
+    G->modificarArco(1, 0, 22);
+    G->adicionarArco(1, 1);//indice=1
+    G->modificarArco(1, 1, 0);
+    G->adicionarArco(1, 2);//indice=1
+    G->modificarArco(1, 2, 23);
+
+
+    G->adicionarArco(2, 0); //indice=0
+    G->modificarArco(2, 0, 34);
+    G->adicionarArco(2, 1);//indice=1
+    G->modificarArco(2, 1, 54);
+    G->adicionarArco(2, 2);//indice=1
+    G->modificarArco(2, 2, 0);
+
+
+
+    int in;
+    int on;
+
+    //Imprimir los vértices con sus arcos
+    for (int i = 0; i < G->cantidadVertices(); ++i) {
+        cout << "Vertice : " << G->obtenerVertice(i) << endl;
+        for (int j = 0; j < G->cantidadArcos(i); j++)
+        {
+            cout << "Arco->" << G->obtenerArco(i, j) << " ";
+        }
+        cout << endl;
     }
-	// Reinsertar repartidores en la cola original
+
+    for (int i = 0; i < 5; i++)
+    {
+        string distrito = Cola_Repartidor->obtenerPos(i)->getdistrito();
+        if (distrito == "SanMiguel")
+        {
+            in = 0;
+        }
+        else if (distrito == "Barranco")
+        {
+            in = 1;
+        }
+        else if (distrito == "JesusMaria")
+        {
+            in = 2;
+        }
+        else
+        {
+            cout << "Distrito no encontrado" << endl;
+            continue;
+        }
+
+        string distrito2 = usuario->getDistrito();
+
+        if (distrito2 == "SanMiguel")
+        {
+            on = 0;
+        }
+        else if (distrito2 == "Barranco")
+        {
+            on = 1;
+        }
+        else if (distrito2 == "JesusMaria")
+        {
+            on = 2;
+        }
+        else
+        {
+            cout << "Distrito no encontrado" << endl;
+            continue;
+        }
+
+        int aas = G->obtenerArco(in, on); // Obtener el arco correspondiente al distrito del repartidor
+
+        Cola_Repartidor->obtenerPos(i)->settarifa(aas);
+    }
+
+    cout << "- - - - - - - - - - - - - - - - - - - LISTA DE REPARTIDORES - - - - - - - - - - - - - - - - - - - - -" << endl;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    Cola<Repartidor*>* temp_Cola = new Cola<Repartidor*>();
+    vector<Repartidor*> repartidores;
+
+    // Extraer y guardar en vector
+    while (!Cola_Repartidor->esVacia()) {
+        Repartidor* r = Cola_Repartidor->desencolar();
+        repartidores.push_back(r);
+        temp_Cola->encolar(r);
+    }
+    // Restaurar la cola original
     while (!temp_Cola->esVacia()) {
         Cola_Repartidor->encolar(temp_Cola->desencolar());
     }
-    delete temp_Cola; //Se eliminar la cola temp
+    delete temp_Cola;
 
-    cout << endl << "Elije a tu repartidor:"; cin >> eleccionRepartidor;
+    int seleccion = 0;
+    bool seleccionado = false;
+
+    while (!seleccionado) {
+        system("cls");
+
+        string titulo = "LISTA DE REPARTIDORES";
+        gotoxy(centrarX(titulo), 2);
+        cout << "- - - - - - " << titulo << " - - - - - -" << endl;
+
+        // Definir cabecera
+        const int COL_ID = 4, COL_NOMBRE = 20, COL_DISTRITO = 15, COL_CALIF = 12, COL_TARIFA = 8;
+        string lineaH = "+" + string(COL_ID + 2, '-') + "+"
+            + string(COL_NOMBRE + 2, '-') + "+"
+            + string(COL_DISTRITO + 2, '-') + "+"
+            + string(COL_CALIF + 2, '-') + "+"
+            + string(COL_TARIFA + 2, '-') + "+";
+
+        string encabezado = "| "
+            + string("ID  ") + " | "
+            + string("Nombre              ") + " | "
+            + string("Distrito        ") + " | "
+            + string("Calificación") + " | "
+            + string("Tarifa ") + " |";
+
+        int x = centrarX(lineaH);
+        int y = 4;
+
+        gotoxy(x, y++); cout << lineaH;
+        gotoxy(x, y++); cout << encabezado;
+        gotoxy(x, y++); cout << lineaH;
+
+        // Mostrar repartidores
+        for (int i = 0; i < repartidores.size(); ++i) {
+            Repartidor* r = repartidores[i];
+            gotoxy(x, y);
+
+            if (i == seleccion) {
+                SetConsoleTextAttribute(hConsole, BACKGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+            }
+
+            cout << "| "
+                << setw(COL_ID) << right << i + 1 << " | "
+                << setw(COL_NOMBRE) << left << r->getnombre() << " | "
+                << setw(COL_DISTRITO) << left << r->getdistrito() << " | "
+                << setw(COL_CALIF) << right << fixed << setprecision(1) << r->getCalificacion() << " | "
+                << setw(COL_TARIFA) << right << r->gettarifa() << " |";
+
+            SetConsoleTextAttribute(hConsole, 7);
+            y++;
+        }
+
+        gotoxy(x, y++); cout << lineaH;
+
+        // Leer entrada del usuario
+        int tecla = _getch();
+        if (tecla == 224) {
+            tecla = _getch();
+            if (tecla == 72 && seleccion > 0) seleccion--; // Flecha arriba
+            if (tecla == 80 && seleccion < repartidores.size() - 1) seleccion++; // Flecha abajo
+        }
+        else if (tecla == 13) {
+            seleccionado = true;
+        }
+    }
+
+    // El usuario ha seleccionado un repartidor
+    this->eleccionRepartidor = seleccion;
+
 }
 
 inline void Controlador::RegistrarProducto(int a) {
@@ -533,23 +750,30 @@ bool Controlador::IniciarSesion() {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     system("cls");
 
-    COORD coordNombre = { (SHORT)centrarX("Nombre: "), 8 };
+    COORD coordNombre = { (SHORT)centrarX("Nombre: "),      8 };
     COORD coordContrasena = { (SHORT)centrarX("Contraseña: "), 10 };
 
-    // Mostrar etiquetas
+    // Etiquetas
     SetConsoleCursorPosition(hConsole, coordNombre);     cout << "Nombre: ";
     SetConsoleCursorPosition(hConsole, coordContrasena); cout << "Contraseña: ";
 
-    // Entrada de datos en posición fija
-    gotoxy((SHORT)(coordNombre.X + 9), coordNombre.Y); cin >> nombre;
+    // Entrada
+    gotoxy((SHORT)(coordNombre.X + 9), coordNombre.Y);     cin >> nombre;
     gotoxy((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
     contraseña = leerContrasenaOculta((SHORT)(coordContrasena.X + 12), coordContrasena.Y);
 
-    // Validación de usuario
-    User* usuario = arbolUsuarios.buscar(nombre);
-    if (usuario && usuario->getContraseña() == contraseña) {
+    /* ────────────────────────────────────────────────────────────────── */
+
+    // Busca el usuario
+    User* encontrado = arbolUsuarios.buscar(nombre);
+
+    if (encontrado && encontrado->getContraseña() == contraseña) {
+
+        /*  ⬇️  SOLUCIÓN: guardar el puntero en el atributo de la clase  */
+        this->usuario = encontrado;
+
         gotoxy(centrarX("¡Bienvenido!"), 13);
-        cout << "¡Bienvenido, " << usuario->getNombre() << "!" << endl;
+        cout << "¡Bienvenido, " << encontrado->getNombre() << "!" << endl;
         system("pause");
         return true;
     }
@@ -560,6 +784,7 @@ bool Controlador::IniciarSesion() {
         return false;
     }
 }
+
 
 inline void Controlador::Vercarrito()
 {
@@ -730,7 +955,9 @@ inline void Controlador::Vercarrito()
           /* ---- 4.2 ELIMINAR ---- */
     case 1: {
         int eliminar;
-        int yPrompt = 6 + List_Carrito->longitud() + n * 2 + 1;
+        // Ajustamos +5 para bajarlo más visualmente desde el último elemento del menú
+        int yPrompt = 6 + List_Carrito->longitud() + n * 2 + 5;
+
         gotoxy(centrarX("Ingrese el código del producto a eliminar:"), yPrompt);
         cout << "Ingrese el código del producto a eliminar: ";
         cin >> eliminar;
@@ -741,7 +968,6 @@ inline void Controlador::Vercarrito()
                 break;
             }
         }
-        break;
     }
 
           /* ---- 4.3 VOLVER ---- */
@@ -915,31 +1141,89 @@ inline void Controlador::PedidoRealizado()
 {
     system("cls");
 
-    double precio= 0.0;
-    cout << "- - - - - - - - - - - - - - - - - - - - - PEDIDOS REALIZADOS - - - - - - - - - - - - -" << endl;
-    cout << "Resumen del pedido: " << endl;
+    double precio = 0.0;
+    string titulo = "PEDIDOS REALIZADOS";
+    gotoxy(centrarX("- - - - - - " + titulo + " - - - - - -"), 2);
+    cout << "- - - - - - " << titulo << " - - - - - -" << endl;
+    gotoxy(centrarX("Resumen del pedido:"), 4);
+    cout << "Resumen del pedido:" << endl;
 
+    // Encolar productos y calcular precio total
     for (int i = 0; i < List_Carrito->longitud(); i++)
     {
-        Cola_resumen->encolar(new producto(List_Carrito->obtenerPos(i)->getid(),
-            List_Carrito->obtenerPos(i)->getnombre(), List_Carrito->obtenerPos(i)->getprecio(), List_Carrito->obtenerPos(i)->getstock()));
+        Cola_resumen->encolar(new producto(
+            List_Carrito->obtenerPos(i)->getid(),
+            List_Carrito->obtenerPos(i)->getnombre(),
+            List_Carrito->obtenerPos(i)->getprecio(),
+            List_Carrito->obtenerPos(i)->getstock()
+        ));
         precio += List_Carrito->obtenerPos(i)->getprecio();
-        
     }
+
+    // Preparar tabla
+    int maxNombre = 10;
+    for (int i = 0; i < List_Carrito->longitud(); ++i)
+        maxNombre = max<int>(maxNombre, List_Carrito->obtenerPos(i)->getnombre().length());
+
+    const int COL_ID = 5, COL_NOMBRE = maxNombre + 2, COL_PRECIO = 10, COL_STOCK = 7;
+    const int ANCHO = COL_ID + COL_NOMBRE + COL_PRECIO + COL_STOCK + 5 * 3 + 1;
+
+    int x0 = centrarX(string(ANCHO, ' '));
+    int y0 = 6;
+
+    string lineaH = "+" + string(COL_ID + 2, '-') + "+"
+        + string(COL_NOMBRE + 2, '-') + "+"
+        + string(COL_PRECIO + 2, '-') + "+"
+        + string(COL_STOCK + 2, '-') + "+";
+
+    // Encabezado tabla
+    gotoxy(x0, y0++); cout << lineaH;
+    gotoxy(x0, y0++); cout << "| "
+        << setw(COL_ID) << left << "ID" << " | "
+        << setw(COL_NOMBRE) << left << "NOMBRE" << " | "
+        << setw(COL_PRECIO) << left << "PRECIO" << " | "
+        << setw(COL_STOCK) << left << "CANT." << " |";
+    gotoxy(x0, y0++); cout << lineaH;
+
+    // Imprimir productos del resumen
     producto* Producto;
-    do
+    while (!Cola_resumen->esVacia())
     {
         Producto = Cola_resumen->desencolar();
-        Producto->toString();
+        gotoxy(x0, y0++);
+        cout << "| "
+            << setw(COL_ID) << right << Producto->getid() << " | "
+            << setw(COL_NOMBRE) << left << Producto->getnombre() << " | "
+            << setw(COL_PRECIO) << right << fixed << setprecision(2)
+            << Producto->getprecio() << " | "
+            << setw(COL_STOCK) << right << Producto->getstock() << " |";
+    }
 
-    } while (!Cola_resumen->esVacia());
+    gotoxy(x0, y0++); cout << lineaH;
 
-    double total = CalcularTotal(Cola_Repartidor, eleccionRepartidor, precio);
+    // Verificar repartidor y calcular total
+    int totalRepartidores = Cola_Repartidor->longitud();
+    gotoxy(centrarX(""), y0++);  // espacio
 
+    if (eleccionRepartidor >= 0 && eleccionRepartidor < totalRepartidores)
+    {
+        double total = CalcularTotal(Cola_Repartidor, eleccionRepartidor, precio);
+        gotoxy(centrarX(""), y0);
+        cout << "EL TOTAL SERÍA: S/. " << fixed << setprecision(2) << total;
+    }
+    else
+    {
+        gotoxy(centrarX(""), y0);
+        cout << "Índice del repartidor fuera de rango. Total disponibles: "
+            << totalRepartidores;
+    }
+
+    gotoxy(0, y0 + 2);
+    system("pause");
     GuardarHistorial();
-
-    cout << " EL TOTAL SERIA :" << total << endl;;
 }
+
+
 
 inline void Controlador::VerHistorial()
 {

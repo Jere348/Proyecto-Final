@@ -1,4 +1,4 @@
-104 Curitas 0.5 41
+104 Curitas 0.5 40
 101 Paracetamol 1.5 5
 103 Alcohol_en_gel 1.75 12
 102 Ibuprofeno 2 12

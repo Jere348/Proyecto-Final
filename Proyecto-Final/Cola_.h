@@ -28,6 +28,15 @@ public:
 	T desencolar();
 	bool esVacia();
 	T obtenerPos(int pos); // Declaration remains the same
+	int longitud() { 
+		NodoC<T>* actual = inicio; 
+		int count = 0; 
+		while (actual != NULL) { 
+			count++; 
+			actual = actual->siguiente; 
+		} 
+		return count; 
+	}
 };
 
 //IMPLEMENTACIÓN

@@ -135,6 +135,7 @@
     <ClInclude Include="Cola.h" />
     <ClInclude Include="Cola_.h" />
     <ClInclude Include="GestorUsuarios.h" />
+    <ClInclude Include="Grafo.h" />
     <ClInclude Include="HashEntidad.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="Lista.h" />
