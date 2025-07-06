@@ -15,7 +15,7 @@ private:
 		for (char c : key) {
 			suma += int(c);  // Código ASCII
 		}
-		return suma % TABLE_SIZE;
+		return suma % TABLE_SIZE+23;
 	}
 
 public:
