@@ -573,13 +573,30 @@ inline void Controlador::RegistrarProducto(int a) {
         cout << "Ingrese el nombre del producto:";
         gotoxy(centrarX("Ingrese el nombre del producto:") + 33, 12);
         cin >> nombreBuscar;
-        HashTablaString* ht = new HashTablaString(100);
-        for (int i = 0; i < List_productos->longitud(); i++) {
-            ht->insertar(List_productos->obtenerPos(i)->getnombre(), List_productos->obtenerPos(i));
+
+        HashTablaString* ht = new HashTablaString(500);
+
+        for (int i = 0; i < List_productos->longitud(); ++i) {
+            producto* prod = List_productos->obtenerPos(i);
+            if (prod == nullptr) {
+                std::cerr << "[AVISO] Producto nulo en índice " << i << endl;
+                continue;
+            }
+
+            string nombre = prod->getnombre();
+            if (!nombre.empty()) {
+                ht->insertar(nombre, prod);
+            }
         }
+
         int index = ht->buscar(nombreBuscar);
+
         if (index != -1) {
-            productoSeleccionado = List_productos->obtenerPos(index);
+            gotoxy(centrarX("Producto encontrado."), 14);
+            cout << "Producto encontrado.";
+            gotoxy(centrarX("Producto encontrado."), 15);
+            system("pause");
+            
         }
         else {
             gotoxy(centrarX("Producto no encontrado."), 14);
@@ -587,6 +604,7 @@ inline void Controlador::RegistrarProducto(int a) {
             gotoxy(centrarX("Producto no encontrado."), 15);
             system("pause");
         }
+
         delete ht;
     }
 
@@ -622,9 +640,6 @@ inline void Controlador::RegistrarProducto(int a) {
         gotoxy(centrarX("Producto agregado al carrito."), 35);
     }
     else {
-        gotoxy(centrarX("Producto no fue agregado."), 34);
-        cout << "Producto no fue agregado.";
-        gotoxy(centrarX("Producto no fue agregado."), 35);
     }
     system("pause");
 }
