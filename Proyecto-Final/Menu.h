@@ -16,6 +16,8 @@
 #include "Grafo.h"
 //Hola
 
+
+
 User* usuario = nullptr; // Variable global para el usuario actual;
 CGrafo<int>* G = new CGrafo<int>();
 
